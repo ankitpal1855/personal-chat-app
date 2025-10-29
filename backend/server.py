@@ -1,54 +1,55 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 CORS(app)
+
+# Get DATABASE_URL from environment variable
+DATABASE_URL = os.environ.get("postgresql://chat_db_uxor_user:6EUCuyPfnWUWLrIDTpF6sC7i0cnI2aOz@dpg-d40svvfdiees73ajijsg-a/chat_db_uxor")
+
+# Connect to the PostgreSQL database
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
+
+# 🟢 Test route
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return "Chat backend is running!"
 
-
-# 🔹 Connect to PostgreSQL
-conn = psycopg2.connect(
-    host="localhost",
-    database="chatdb",
-    user="postgres",
-    password="admin9563"
-)
-cur = conn.cursor()
-
-# 🔹 Create messages table if not exists
-cur.execute("""
-CREATE TABLE IF NOT EXISTS messages (
-    id SERIAL PRIMARY KEY,
-    name TEXT,
-    message TEXT,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-""")
-conn.commit()
-
-# 🔹 Route to get all messages
+# 🟢 Get all messages
 @app.route("/messages", methods=["GET"])
 def get_messages():
-    cur.execute("SELECT name, message, timestamp FROM messages ORDER BY id ASC;")
-    rows = cur.fetchall()
-    return jsonify([
-        {"name": r[0], "message": r[1], "timestamp": r[2].strftime("%H:%M:%S")}
-        for r in rows
-    ])
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("SELECT * FROM messages ORDER BY timestamp ASC;")
+    messages = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify(messages)
 
-# 🔹 Route to send a message
-@app.route("/send", methods=["POST"])
-def send_message():
+# 🟢 Add new message
+@app.route("/messages", methods=["POST"])
+def add_message():
     data = request.get_json()
     name = data["name"]
     message = data["message"]
-    cur.execute("INSERT INTO messages (name, message) VALUES (%s, %s)", (name, message))
+    timestamp = datetime.now()
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO messages (name, message, timestamp) VALUES (%s, %s, %s);",
+        (name, message, timestamp),
+    )
     conn.commit()
-    return jsonify({"status": "ok"})
+    cur.close()
+    conn.close()
+    return jsonify({"status": "success"})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=10000)
