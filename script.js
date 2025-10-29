@@ -3,9 +3,9 @@ const API_BASE = "https://personal-chat-app-1-xzgl.onrender.com";
 
 // ✅ Predefined users
 const USERS = {
-  "ankit": { password: "pass123", nickname: "Anki" },
-  "rishi": { password: "rishi321", nickname: "RishMan" },
-  "arjun": { password: "arjun999", nickname: "AJ" }
+  "ankit": { password: "pass123", nickname: "goreeb 🥲" },
+  "anurag": { password: "Anurag@anurag498465", nickname: "Epic Anu 😉" },
+  "chirag": { password: "Chirag@chirag456456", nickname: "Ansh Badshah 😎" }
 };
 
 let currentUser = "";
