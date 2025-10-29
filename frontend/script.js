@@ -1,4 +1,8 @@
-// ✅ Store valid users
+// ✅ Backend URL (auto-switch for local or Render)
+const API_URL = window.location.hostname.includes("127.0.0.1")
+  ? "http://127.0.0.1:5000"
+  : "https://personal-chat-app-1-xzgl.onrender.com";
+
 // ✅ Users, Passwords, and Display Nicknames
 const USERS = {
   "ankit": { password: "pass123", nickname: "Anki" },
@@ -8,7 +12,6 @@ const USERS = {
 
 let currentUser = "";
 let displayName = "";
-
 
 // 🔹 Check localStorage on load
 window.onload = () => {
@@ -20,7 +23,6 @@ window.onload = () => {
     showChat();
   }
 };
-
 
 // 🔹 Handle login
 function login() {
@@ -35,11 +37,10 @@ function login() {
 
   currentUser = name;
   displayName = USERS[name].nickname;
-  localStorage.setItem("chatUser", currentUser); // ✅ Remember login
+  localStorage.setItem("chatUser", currentUser);
   localStorage.setItem("chatNickname", displayName);
   showChat();
 }
-
 
 // 🔹 Show chat and load messages
 function showChat() {
@@ -50,10 +51,9 @@ function showChat() {
   setInterval(loadMessages, 2000);
 }
 
-
 // 🔹 Load messages from backend
 async function loadMessages() {
-  const res = await fetch("http://127.0.0.1:5000/messages");
+  const res = await fetch(`${API_URL}/messages`);
   const data = await res.json();
   const msgDiv = document.getElementById("messages");
   msgDiv.innerHTML = "";
@@ -61,7 +61,7 @@ async function loadMessages() {
   data.forEach(m => {
     const div = document.createElement("div");
     div.classList.add("msg");
-    if (m.name === currentUser) {
+    if (m.name === displayName) {
       div.style.fontWeight = "bold";
       div.style.color = "blue";
     }
@@ -77,7 +77,7 @@ async function sendMessage() {
   const msg = document.getElementById("msgInput").value.trim();
   if (!msg) return;
 
-  await fetch("http://127.0.0.1:5000/send", {
+  await fetch(`${API_URL}/send`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: displayName, message: msg })
@@ -87,9 +87,9 @@ async function sendMessage() {
   loadMessages();
 }
 
-
-// 🔹 Add logout button (optional)
+// 🔹 Logout
 function logout() {
   localStorage.removeItem("chatUser");
+  localStorage.removeItem("chatNickname");
   location.reload();
 }
