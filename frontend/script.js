@@ -1,9 +1,7 @@
-// ✅ Backend URL (auto-switch for local or Render)
-const API_URL = window.location.hostname.includes("127.0.0.1")
-  ? "http://127.0.0.1:5000"
-  : "https://personal-chat-app-1-xzgl.onrender.com";
+// ✅ Backend API URL — change this to your Render backend URL
+const API_BASE = "https://personal-chat-app-1-xzgl.onrender.com"; // your actual backend URL
 
-// ✅ Users, Passwords, and Display Nicknames
+// ✅ Users and passwords
 const USERS = {
   "ankit": { password: "pass123", nickname: "Anki" },
   "rishi": { password: "rishi321", nickname: "RishMan" },
@@ -46,50 +44,56 @@ function login() {
 function showChat() {
   document.getElementById("loginBox").classList.add("hidden");
   document.getElementById("chatBox").classList.remove("hidden");
-  displayName = localStorage.getItem("chatNickname") || displayName;
   loadMessages();
   setInterval(loadMessages, 2000);
 }
 
 // 🔹 Load messages from backend
 async function loadMessages() {
-  const res = await fetch(`${API_URL}/messages`);
-  const data = await res.json();
-  const msgDiv = document.getElementById("messages");
-  msgDiv.innerHTML = "";
+  try {
+    const res = await fetch(`${API_BASE}/messages`);
+    const data = await res.json();
+    const msgDiv = document.getElementById("messages");
+    msgDiv.innerHTML = "";
 
-  data.forEach(m => {
-    const div = document.createElement("div");
-    div.classList.add("msg");
-    if (m.name === displayName) {
-      div.style.fontWeight = "bold";
-      div.style.color = "blue";
-    }
-    div.textContent = `[${m.timestamp}] ${m.name}: ${m.message}`;
-    msgDiv.appendChild(div);
-  });
+    data.forEach(m => {
+      const div = document.createElement("div");
+      div.classList.add("msg");
+      if (m.name === displayName) {
+        div.style.fontWeight = "bold";
+        div.style.color = "blue";
+      }
+      div.textContent = `[${m.timestamp}] ${m.name}: ${m.message}`;
+      msgDiv.appendChild(div);
+    });
 
-  msgDiv.scrollTop = msgDiv.scrollHeight;
+    msgDiv.scrollTop = msgDiv.scrollHeight;
+  } catch (err) {
+    console.error("Failed to load messages:", err);
+  }
 }
 
-// 🔹 Send a message
+// 🔹 Send message
 async function sendMessage() {
   const msg = document.getElementById("msgInput").value.trim();
   if (!msg) return;
 
-  await fetch(`${API_URL}/send`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: displayName, message: msg })
-  });
+  try {
+    await fetch(`${API_BASE}/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: displayName, message: msg })
+    });
 
-  document.getElementById("msgInput").value = "";
-  loadMessages();
+    document.getElementById("msgInput").value = "";
+    loadMessages();
+  } catch (err) {
+    console.error("Failed to send message:", err);
+  }
 }
 
 // 🔹 Logout
 function logout() {
   localStorage.removeItem("chatUser");
-  localStorage.removeItem("chatNickname");
   location.reload();
 }
