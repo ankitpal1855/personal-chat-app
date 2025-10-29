@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Get DATABASE_URL from environment variable
-DATABASE_URL = os.environ.get("postgresql://chat_db_uxor_user:6EUCuyPfnWUWLrIDTpF6sC7i0cnI2aOz@dpg-d40svvfdiees73ajijsg-a/chat_db_uxor")
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 # Connect to the PostgreSQL database
 def get_db_connection():
@@ -53,3 +53,4 @@ def add_message():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
