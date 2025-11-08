@@ -3,9 +3,9 @@ const API_BASE = "https://personal-chat-app-1-xzgl.onrender.com";
 
 // ✅ Predefined users
 const USERS = {
-  "ankit": { password: "pass123", nickname: "goreeb 🥲" },
-  "anurag": { password: "Anurag@anurag498465", nickname: "Epic Anu 😉" },
-  "chirag": { password: "Chirag@chirag456456", nickname: "Ansh Badshah 😎" }
+  "ankit": { password: "pass123", nickname: "goreeb 🥲", email: "ap349500@gmail.com" },
+  "anurag": { password: "Anurag@anurag498465", nickname: "Epic Anu 😉", email: "ap349500@gmail.com" },
+  "chirag": { password: "Chirag@chirag456456", nickname: "Ansh Badshah 😎", email: "ap349500@gmail.com" }
 };
 
 let currentUser = "";
@@ -92,6 +92,30 @@ async function sendMessage() {
     console.error("Error sending message:", err);
   }
 }
+
+// 🔹 Poke Button
+async function poke() {
+  // Find all users except current one
+  const others = Object.keys(USERS).filter(u => u !== currentUser);
+  const sender = displayName;
+
+  try {
+    await fetch(`${API_BASE}/poke`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: sender,
+        to: others.map(u => USERS[u].email) // send to other two emails
+      })
+    });
+
+    alert("Poke sent successfully!");
+  } catch (err) {
+    console.error("Error sending poke:", err);
+    alert("Failed to send poke.");
+  }
+}
+
 
 // 🔹 Logout
 function logout() {
