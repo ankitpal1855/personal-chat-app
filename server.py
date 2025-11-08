@@ -62,25 +62,25 @@ def poke():
     subject = f"💬 {sender} poked you on Private Chat App!"
     body = f"Hey! {sender} poked you on Private Chat App.\nGo check what they want to talk about."
 
-    # Email setup — use a Gmail account for example
-    EMAIL = os.getenv("EMAIL_USER")
-    PASSWORD = os.getenv("EMAIL_PASS")
+    HOST = os.getenv("EMAIL_HOST")
+    PORT = int(os.getenv("EMAIL_PORT", "587"))
+    USER = os.getenv("EMAIL_USER")
+    PASS = os.getenv("EMAIL_PASS")
 
     msg = MIMEText(body)
     msg["Subject"] = subject
-    msg["From"] = EMAIL
+    msg["From"] = USER
     msg["To"] = ", ".join(recipients)
 
     try:
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        with smtplib.SMTP(HOST, PORT) as server:
             server.starttls()
-            server.login(EMAIL, PASSWORD)
-            server.sendmail(EMAIL, recipients, msg.as_string())
+            server.login(USER, PASS)
+            server.sendmail(USER, recipients, msg.as_string())
         return jsonify({"status": "sent"})
     except Exception as e:
         print("Email error:", e)
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
