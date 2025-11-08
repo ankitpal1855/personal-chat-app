@@ -3,6 +3,9 @@ from flask_cors import CORS
 import psycopg2
 from datetime import datetime
 import os
+import smtplib
+from email.mime.text import MIMEText
+
 
 app = Flask(__name__)
 CORS(app)
@@ -45,6 +48,39 @@ def send_message():
     cur.close()
     conn.close()
     return jsonify({"status": "success"})
+
+#Poke button backend
+@app.route('/poke', methods=['POST'])
+def poke():
+    data = request.get_json()
+    sender = data.get('from')
+    recipients = data.get('to', [])
+
+    if not sender or not recipients:
+        return jsonify({"error": "Missing sender or recipients"}), 400
+
+    subject = f"💬 {sender} poked you on Private Chat App!"
+    body = f"Hey! {sender} poked you on Private Chat App.\nGo check what they want to talk about."
+
+    # Email setup — use a Gmail account for example
+    EMAIL = os.getenv("EMAIL_USER")
+    PASSWORD = os.getenv("EMAIL_PASS")
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = EMAIL
+    msg["To"] = ", ".join(recipients)
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(EMAIL, PASSWORD)
+            server.sendmail(EMAIL, recipients, msg.as_string())
+        return jsonify({"status": "sent"})
+    except Exception as e:
+        print("Email error:", e)
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
